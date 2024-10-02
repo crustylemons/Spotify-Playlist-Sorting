@@ -48,17 +48,23 @@ def search_for_artist(token, artist_name):
     query = f"?q={artist_name}&type=artist&limit=1" # Searches for the artist, limiting to the first found
 
     # Send GET request to API
-    result = get(url + query, headers=headers)
+    result = requests.get(url + query, headers=headers)
 
-    # Turns json into python dictionary
-    json_result = json.loads(result.content)["artists"]["items"]
-
-    # Checks if there isn't a result by length of json result
-    if len(json_result) == 0:
-        print("No artists with this name exists...")
-        return None
+    if result.status_code == 200:
+        # Turns json into python dictionary
+        json_result = json.loads(result.text)["artists"]["items"]
+        
+        # Checks if there isn't a result by length of json result
+        if len(json_result) == 0:
+            print("No artists with this name exists...")
+            return None
+        
+        return json_result[0]
     
-    return json_result[0]
+    else:
+        # Handle error responses
+        print(f"Failed to get artist: {result.status_code} - {result.text}")
+        return None
 
 # Retreives all json data of playlists from a user
 def get_all_playlists(token, username):
@@ -135,15 +141,15 @@ def get_all_tracks (token, playlist_name, username):
 
 # Create a new playlist
 ### DOESN'T WORK YET
-def create_playlist(token, new_playlist_name, username):
-    user_id = get_my_playlist_id()
+def duplicate_playlist(token, playlist_name, new_playlist_name, username):
+    #playlist_id = get_my_playlist_id(token, playlist_name, username)
     url = f"https://api.spotify.com/v1/users/{username}/playlists"
     headers = get_auth_header(token) # Proves I can access Spotify's data
 
     # Define the request body
     data = {
         "name": new_playlist_name,
-        "description": f"Playlist created via API: {new_playlist_name}",
+        "description": f"Playlist created with API: {new_playlist_name}",
         "public": False
     }
 
@@ -194,4 +200,5 @@ username = "lilyh396113"
 
 #get_all_playlists(token, "lilyh396113")
 #get_all_tracks(token, "Adamant_Ashley‘s Main Playlist", "lilyh396113")
-create_playlist(token, "new playlist", username)
+#duplicate_playlist(token, "Adamant_Ashley‘s Main Playlist", "new playlist", username)
+search_for_artist(token, "Taylor Swift")
